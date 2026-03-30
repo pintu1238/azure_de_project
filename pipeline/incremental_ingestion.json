@@ -31,7 +31,7 @@
 					"source": {
 						"type": "AzureSqlSource",
 						"sqlReaderQuery": {
-							"value": "select * from @{pipeline().parameters.schema}.@{pipeline().parameters.table} where @{pipeline().parameters.cdc_col} > '@{activity('Last_cdc').output.value[0].cdc}'",
+							"value": "SELECT * FROM @{pipeline().parameters.schema}.@{pipeline().parameters.table}\nWHERE @{pipeline().parameters.cdc_col} > '@{if(empty(pipeline().parameters.from_date),\nactivity('Last_cdc').output.value[0].cdc,pipeline().parameters.from_date)}'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -190,11 +190,11 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "updated_lastcdc_copy1",
+							"name": "updated_lastcdc",
 							"type": "Copy",
 							"dependsOn": [
 								{
-									"activity": "max_cdc_copy1",
+									"activity": "max_cdc",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -264,7 +264,7 @@
 							]
 						},
 						{
-							"name": "max_cdc_copy1",
+							"name": "max_cdc",
 							"type": "Script",
 							"dependsOn": [],
 							"policy": {
@@ -304,6 +304,9 @@
 				"type": "string"
 			},
 			"cdc_col": {
+				"type": "string"
+			},
+			"from_date": {
 				"type": "string"
 			}
 		},
